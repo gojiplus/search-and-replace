@@ -1,59 +1,134 @@
-### Turbo Search and Replace 
+# search-and-replace
 
-[![Build Status](https://travis-ci.org/soodoku/search-and-replace.svg?branch=master)](https://travis-ci.org/soodoku/search-and-replace)
-[![Build status](https://ci.appveyor.com/api/projects/status/dd6weascqvw4wg5o?svg=true)](https://ci.appveyor.com/project/soodoku/search-and-replace)
+[![CI](https://github.com/soodoku/search-and-replace/actions/workflows/ci.yml/badge.svg)](https://github.com/soodoku/search-and-replace/actions/workflows/ci.yml)
+[![PyPI version](https://badge.fury.io/py/search-and-replace.svg)](https://badge.fury.io/py/search-and-replace)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-#### Functionality
+High-performance search and replace using [Hyperscan](https://github.com/intel/hyperscan) for multi-pattern matching.
 
-1. Removes extra blank lines.  
-2. Removes soft-hyphens followed by new line (this typically means multi-line words).  
-3. Searches and replaces a list of words:   
-   The script takes a csv ([replacelist.csv](replacelist.csv)) that carries words to be replaced, and replacement words.  
-4. Regular expression based replacement: 
-   * Allows for 0-X consecutive errors within a word.  
-   * Takes [wordlist.csv](wordlist.csv) that carries words and X for each word    
-   * For instance if a row in wordlist.csv reads: Available,1    
-   * Av.{0,1}\??[\r\n]*ilable ==> Available    
-   * Ava.{0,1}\??[\r\n]*lable ==> Available 
+## Installation
 
-### Installation
+Requires Hyperscan system library:
 
-Clone this repository:
+```bash
+# macOS (ARM)
+brew install vectorscan
 
-`git clone https://github.com/soodoku/search-and-replace.git`
+# macOS (Intel)
+brew install hyperscan
 
-Navigate to search-and-replace
-
-Run `python setup.py install`
-
-#### Running the script 
-
-The script expects the following two files in the same directory:  
-1. replacelist.csv -- carries word pairs (original_word, replace_with_this_word). (Sample [replacelist.csv](replacelist.csv).)  
-2. wordlist.csv -- carries the correct word, and number of consecutive errors tolerated. All the variously misspelled words will be replaced with the correct word. (Sample [wordlist.csv](wordlist.csv).)  
-
-#### Usage
-`postprocess.py [options] source_txt_directory`
-
-#### Command Line Options
-```
-Options:
-  -h, --help            show this help message and exit
-  -o OUTDIR, --outdir=OUTDIR
-                        Text output directory (default: postprocessed)
-  -r, --resume          Resume postprocessing (Skip if existing) (default:
-                        False)
+# Ubuntu/Debian
+apt-get install libhyperscan-dev
 ```
 
-### Example:
-`python postprocess.py txt_dir`
+Then install the package:
 
-The script will be post process all text files in 'txt_dir' directory and save the output file to the 'postprocessed' directory. [Sample input](txt_dir/) and [sample output](postprocessed).
+```bash
+pip install search-and-replace
+```
 
-#### Application
+## Quick Start
 
-The script can be used for fixing dirty data. For instance, one application for the script is postprocessing dirty OCR data. See more at: [A Quick Scan: From Paper to Digital](http://gbytes.gsood.com/2014/05/28/a-quick-scan-from-paper-to-digital-data/).  
+### Command Line
 
-#### License
+```bash
+# Process directory with word list
+search-and-replace ./input -o ./output -w wordlist.csv
 
-Scripts are released under the [MIT License](https://opensource.org/licenses/MIT).
+# With replacements and verbose output
+search-and-replace ./input -w wordlist.csv -r replacelist.csv -v
+
+# Custom file pattern and worker count
+search-and-replace ./input -p "*.txt" -j 8
+```
+
+### Python API
+
+```python
+from pathlib import Path
+from search_and_replace import (
+    HyperscanWordList,
+    ReplacementList,
+    load_wordlist,
+    process_directory,
+)
+
+# Fix OCR errors in text
+wordlist = HyperscanWordList([
+    ("Network", 1),    # matches "Netwxrk", "Netvork", etc.
+    ("Available", 1),  # matches "Avxilable", "Availxble", etc.
+])
+
+text = "The Netwxrk is Avxilable"
+fixed = wordlist.apply(text)
+# "The Network is Available"
+
+# Direct replacements
+replacelist = ReplacementList([
+    ("teh", "the"),
+    ("recieve", "receive"),
+])
+fixed = replacelist.apply("I recieve teh package")
+# "I receive the package"
+
+# Process entire directory
+words = load_wordlist(Path("wordlist.csv"))
+processed, skipped = process_directory(
+    Path("./input"),
+    Path("./output"),
+    wordlist_data=words,
+    jobs=4,
+)
+```
+
+## File Formats
+
+### wordlist.csv
+
+Word and max character errors per line:
+
+```csv
+Network,1
+Available,1
+Program,2
+```
+
+### replacelist.csv
+
+Search and replace pairs:
+
+```csv
+Networtt,Network
+marlcets,markets
+teh,the
+```
+
+## CLI Options
+
+```
+search-and-replace [-h] [--version] [-o OUTDIR] [-w WORDLIST]
+                   [-r REPLACELIST] [--resume] [-v] [-p PATTERN]
+                   [-j JOBS] source_dir
+
+  source_dir          Source directory
+  -o, --outdir        Output directory (default: postprocessed)
+  -w, --wordlist      Word list CSV (default: wordlist.csv)
+  -r, --replacelist   Replacement list CSV (default: replacelist.csv)
+  --resume            Skip existing output files
+  -v, --verbose       Verbose output
+  -p, --pattern       File glob pattern (default: *.txt)
+  -j, --jobs          Worker count (default: CPU count)
+```
+
+## Use Case: OCR Post-Processing
+
+Designed for cleaning OCR output:
+
+- "Netwxrk" → "Network" (character error)
+- "hy-\nphen" → "hyphen" (cross-line splits)
+- "marlcets" → "markets" (known OCR errors)
+
+## License
+
+MIT

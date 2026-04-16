@@ -1,0 +1,131 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "search-and-replace"
+version = "0.4.0"
+description = "High-performance search and replace using Hyperscan"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ email = "gsood07@gmail.com" }]
+dependencies = ["hyperscan>=0.7.0"]
+keywords = ["search", "replace", "edit-distance", "regular-expressions", "ocr", "text-processing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/soodoku/search-and-replace"
+Repository = "https://github.com/soodoku/search-and-replace"
+Documentation = "https://soodoku.github.io/search-and-replace"
+Issues = "https://github.com/soodoku/search-and-replace/issues"
+
+[project.scripts]
+search-and-replace = "search_and_replace.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "pydoclint>=0.5",
+    "vulture>=2.11",
+    "deptry>=0.16",
+    "pre-commit>=3.7",
+]
+docs = [
+    "sphinx>=7.0",
+    "furo>=2024.1",
+    "sphinx-copybutton>=0.5",
+    "sphinx-autodoc-typehints>=2.0",
+    "myst-parser>=3.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/search_and_replace"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "D",      # pydocstyle
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "RUF",    # ruff-specific
+    "PERF",   # perflint
+]
+ignore = [
+    "D100",   # Missing docstring in public module
+    "D104",   # Missing docstring in public package
+    "D107",   # Missing docstring in __init__
+    "TC003",  # Move standard library import into TYPE_CHECKING block (we need Path at runtime)
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+exclude = ["tests"]
+
+[[tool.mypy.overrides]]
+module = "hyperscan"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=search_and_replace --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["src/search_and_replace"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+
+[tool.vulture]
+min_confidence = 80
+paths = ["src"]
+
+[tool.deptry]
+optional_dependencies_dev_groups = ["dev", "docs"]
+
+[tool.pydoclint]
+style = "google"
+arg-type-hints-in-docstring = false
+check-return-types = false
