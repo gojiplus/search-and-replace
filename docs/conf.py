@@ -1,5 +1,10 @@
 """Sphinx configuration for search-and-replace documentation."""
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 project = "search-and-replace"
 copyright = "2024"
 author = "Gaurav Sood"

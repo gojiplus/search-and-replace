@@ -6,7 +6,12 @@ API Reference
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: search_and_replace.postprocess
+.. automodule:: search_and_replace.correctors
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: search_and_replace.batch
    :members:
    :undoc-members:
    :show-inheritance:

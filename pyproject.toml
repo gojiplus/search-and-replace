@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [{ email = "gsood07@gmail.com" }]
-dependencies = ["hyperscan>=0.7.0"]
+dependencies = ["hyperscan>=0.7.0", "symspellpy>=6.7.0"]
 keywords = ["search", "replace", "edit-distance", "regular-expressions", "ocr", "text-processing"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -100,7 +100,7 @@ warn_unused_configs = true
 exclude = ["tests"]
 
 [[tool.mypy.overrides]]
-module = "hyperscan"
+module = ["hyperscan", "symspellpy"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

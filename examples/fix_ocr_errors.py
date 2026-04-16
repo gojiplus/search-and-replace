@@ -1,37 +1,35 @@
 #!/usr/bin/env python3
-"""Example: Fix common OCR errors in text."""
+"""Example: Fix OCR errors using multiple correction methods."""
 
-from search_and_replace import HyperscanWordList, ReplacementList
+from search_and_replace import OCRCorrector, PatternCorrector, SpellCorrector
 
-# Simulated OCR output with errors
 ocr_text = """
-The Netwxrk Administrator confirmed that the systxm is now Avxilable.
-Users can accxss the Prxgram through the main portxl.
-Contact support if you recieve any error messxges.
+The Netwxrk Administrator confirmed that the systxm is Avxilable.
+He11o W0rld - this has 0CR nurnber confusions.
 """
 
-# Fuzzy matching for single-character OCR errors
-# Format: (correct_word, max_errors)
-wordlist = HyperscanWordList([
-    ("Network", 1),
-    ("system", 1),
-    ("Available", 1),
-    ("access", 1),
-    ("Program", 1),
-    ("portal", 1),
-    ("messages", 1),
-])
-
-# Direct replacements for known OCR mistakes
-replacelist = ReplacementList([
-    ("recieve", "receive"),
-])
-
-# Apply corrections
-fixed = wordlist.apply(ocr_text)
-fixed = replacelist.apply(fixed)
-
-print("=== Original (OCR output) ===")
+print("=== Original ===")
 print(ocr_text)
-print("=== Fixed ===")
-print(fixed)
+
+# 1. OCR confusion correction (0→O, 1→l, rn→m)
+print("=== After OCR Correction ===")
+ocr = OCRCorrector()
+step1 = ocr.correct(ocr_text)
+print(step1)
+
+# 2. Spell correction (Levenshtein)
+print("=== After Spell Correction ===")
+spell = SpellCorrector()
+step2 = spell.correct_text(step1)
+print(step2)
+
+# 3. Pattern matching (Hyperscan)
+print("=== After Pattern Correction ===")
+patterns = PatternCorrector([("Network", 1), ("system", 1), ("Available", 1)])
+step3 = patterns.correct(step2)
+print(step3)
+
+# 4. Custom spell checker
+print("=== Custom SpellCorrector Demo ===")
+custom = SpellCorrector(words=["network", "available"])
+print(f"'Netwxrk' -> '{custom.correct('Netwxrk')}'")

@@ -1,7 +1,7 @@
 search-and-replace
 ==================
 
-High-performance search and replace for text files using regular expressions and edit distance.
+High-performance text correction for OCR output using Hyperscan and SymSpell.
 
 .. toctree::
    :maxdepth: 2
@@ -12,88 +12,48 @@ High-performance search and replace for text files using regular expressions and
 Installation
 ------------
 
+Requires Hyperscan system library:
+
+.. code-block:: bash
+
+   # macOS
+   brew install vectorscan  # ARM
+   brew install hyperscan   # Intel
+
+   # Ubuntu/Debian
+   apt-get install libhyperscan-dev
+
+Then install via pip:
+
 .. code-block:: bash
 
    pip install search-and-replace
 
-Or with uv:
-
-.. code-block:: bash
-
-   uv add search-and-replace
-
 Quick Start
 -----------
 
-Command Line
-^^^^^^^^^^^^
-
-Process all text files in a directory:
-
-.. code-block:: bash
-
-   search-and-replace txt_dir -o output_dir
-
-With custom word lists:
-
-.. code-block:: bash
-
-   search-and-replace txt_dir -w wordlist.csv -r replacelist.csv -v
-
-Python API
-^^^^^^^^^^
-
 .. code-block:: python
 
-   from search_and_replace import (
-       CompiledWordList,
-       CompiledReplaceList,
-       load_wordlist,
-       load_replacelist,
-       process_text,
-   )
+   from search_and_replace import SpellCorrector, OCRCorrector, PatternCorrector
 
-   # Load and compile word lists
-   words = load_wordlist(Path("wordlist.csv"))
-   wordlist = CompiledWordList(words)
+   # Fix common OCR confusions (0→O, 1→l, rn→m)
+   ocr = OCRCorrector()
+   ocr.correct("He11o W0rld")  # "Hello WOrld"
 
-   replacements = load_replacelist(Path("replacelist.csv"))
-   replacelist = CompiledReplaceList(replacements)
+   # Spell correction with bundled dictionary
+   spell = SpellCorrector()
+   spell.correct("helo")  # "hello"
 
-   # Process text
-   result = process_text(text, wordlist, replacelist)
+   # Pattern matching with Hyperscan
+   patterns = PatternCorrector([("Network", 1), ("Available", 1)])
+   patterns.correct("The Netwxrk is Avxilable")  # "The Network is Available"
 
-Features
---------
+CLI
+---
 
-- **Blank line removal**: Cleans up extra whitespace
-- **Hyphen handling**: Joins words split across lines
-- **Direct replacement**: Fast exact string matching from CSV lists
-- **Fuzzy matching**: Regex-based correction with configurable error tolerance
+.. code-block:: bash
 
-File Formats
-------------
-
-wordlist.csv
-^^^^^^^^^^^^
-
-Each line contains a word and the maximum number of character errors to tolerate:
-
-.. code-block:: text
-
-   Network,1
-   Program,2
-   Available,1
-
-replacelist.csv
-^^^^^^^^^^^^^^^
-
-Each line contains a search term and its replacement, comma or semicolon separated:
-
-.. code-block:: text
-
-   Networtt,Network
-   marlcets,markets
+   search-and-replace ./input -o ./output --patterns wordlist.csv
 
 Indices and tables
 ==================

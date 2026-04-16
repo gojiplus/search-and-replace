@@ -1,19 +1,21 @@
-"""High-performance search and replace for text files."""
+"""High-performance text correction for OCR output."""
 
-from search_and_replace.hyperscan_engine import HyperscanWordList
-from search_and_replace.postprocess import (
-    ReplacementList,
-    load_replacelist,
-    load_wordlist,
-    process_directory,
+from search_and_replace.batch import load_patterns, load_replacements, process_directory
+from search_and_replace.correctors import (
+    OCRCorrector,
+    PatternCorrector,
+    Replacer,
+    SpellCorrector,
 )
 
 __version__ = "0.4.0"
 __all__ = [
-    "HyperscanWordList",
-    "ReplacementList",
+    "OCRCorrector",
+    "PatternCorrector",
+    "Replacer",
+    "SpellCorrector",
     "__version__",
-    "load_replacelist",
-    "load_wordlist",
+    "load_patterns",
+    "load_replacements",
     "process_directory",
 ]
